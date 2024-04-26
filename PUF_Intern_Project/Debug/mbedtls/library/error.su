@@ -1,0 +1,3 @@
+../mbedtls/library/error.c:214:14:mbedtls_high_level_strerr	24	static
+../mbedtls/library/error.c:578:14:mbedtls_low_level_strerr	24	static
+../mbedtls/library/error.c:896:6:mbedtls_strerror	40	static

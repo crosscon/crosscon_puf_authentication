@@ -1,0 +1,12 @@
+../source/LPC55S69_PAVOC.c:33:6:hex_to_bytes_array	32	static
+../source/LPC55S69_PAVOC.c:41:6:calc_sha_256	120	static
+../source/LPC55S69_PAVOC.c:57:6:puf	16	static
+../source/LPC55S69_PAVOC.c:66:5:verify_inclusion	160	dynamic
+../source/LPC55S69_PAVOC.c:177:5:verify_path	168	static
+../source/LPC55S69_PAVOC.c:220:6:generateHashChain	64	static
+../source/LPC55S69_PAVOC.c:230:6:generateMAC	48	static
+../source/LPC55S69_PAVOC.c:244:6:authenticate	88	static
+../source/LPC55S69_PAVOC.c:253:5:verify	128	static
+../source/LPC55S69_PAVOC.c:270:6:enroll	64	static
+../source/LPC55S69_PAVOC.c:280:6:revealChainElement	56	static
+../source/LPC55S69_PAVOC.c:290:5:main	736	static

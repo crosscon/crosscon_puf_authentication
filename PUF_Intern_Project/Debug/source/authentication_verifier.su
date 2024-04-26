@@ -1,0 +1,2 @@
+../source/authentication_verifier.c:9:5:start_auth_verifier	2336	static
+../source/authentication_verifier.c:107:5:verify_ECC	304	dynamic

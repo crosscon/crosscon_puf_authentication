@@ -1,0 +1,15 @@
+../mbedtls/library/psa_crypto_core.h:41:19:mbedtls_psa_safer_memcmp	32	static
+../mbedtls/library/psa_crypto_mac.c:34:21:psa_hmac_abort_internal	16	static
+../mbedtls/library/psa_crypto_mac.c:41:21:psa_hmac_setup_internal	176	static
+../mbedtls/library/psa_crypto_mac.c:106:21:psa_hmac_update_internal	24	static
+../mbedtls/library/psa_crypto_mac.c:114:21:psa_hmac_finish_internal	104	static
+../mbedtls/library/psa_crypto_mac.c:197:21:mac_init	24	static
+../mbedtls/library/psa_crypto_mac.c:232:14:mbedtls_psa_mac_abort	16	static
+../mbedtls/library/psa_crypto_mac.c:275:21:psa_mac_setup	32	static
+../mbedtls/library/psa_crypto_mac.c:324:14:mbedtls_psa_mac_sign_setup	32	static
+../mbedtls/library/psa_crypto_mac.c:335:14:mbedtls_psa_mac_verify_setup	32	static
+../mbedtls/library/psa_crypto_mac.c:346:14:mbedtls_psa_mac_update	24	static
+../mbedtls/library/psa_crypto_mac.c:380:21:psa_mac_finish_internal	24	static
+../mbedtls/library/psa_crypto_mac.c:414:14:mbedtls_psa_mac_sign_finish	32	static
+../mbedtls/library/psa_crypto_mac.c:432:14:mbedtls_psa_mac_verify_finish	96	static
+../mbedtls/library/psa_crypto_mac.c:460:14:mbedtls_psa_mac_compute	424	static

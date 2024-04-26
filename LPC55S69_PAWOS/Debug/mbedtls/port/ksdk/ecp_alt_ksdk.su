@@ -1,0 +1,4 @@
+../mbedtls/port/ksdk/ecp_alt_ksdk.c:58:13:reverse_array	24	static
+../mbedtls/port/ksdk/ecp_alt_ksdk.c:73:5:ecp_mul_comb	256	static
+../mbedtls/port/ksdk/ecp_alt_ksdk.c:165:5:mbedtls_ecp_muladd_restartable	496	static
+../mbedtls/port/ksdk/ecp_alt_ksdk.c:281:5:mbedtls_ecp_muladd	40	static

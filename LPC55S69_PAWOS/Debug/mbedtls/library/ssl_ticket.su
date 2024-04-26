@@ -1,0 +1,10 @@
+C:\Users\lup22vs\Documents\MCUXpressoIDE_11.8.0_1165\workspace\LPC55S69_PAWOS\mbedtls\include/mbedtls/cipher.h:604:19:mbedtls_cipher_get_key_bitlen	16	static
+C:\Users\lup22vs\Documents\MCUXpressoIDE_11.8.0_1165\workspace\LPC55S69_PAWOS\mbedtls\include/mbedtls/ssl_internal.h:331:19:mbedtls_ssl_chk_buf_ptr	24	static
+../mbedtls/library/ssl_ticket.c:42:6:mbedtls_ssl_ticket_init	16	static
+../mbedtls/library/ssl_ticket.c:70:12:ssl_ticket_gen_key	64	static
+../mbedtls/library/ssl_ticket.c:101:12:ssl_ticket_update_keys	16	static
+../mbedtls/library/ssl_ticket.c:129:5:mbedtls_ssl_ticket_setup	32	static
+../mbedtls/library/ssl_ticket.c:200:5:mbedtls_ssl_ticket_write	96	static
+../mbedtls/library/ssl_ticket.c:283:32:ssl_ticket_select_key	24	static
+../mbedtls/library/ssl_ticket.c:299:5:mbedtls_ssl_ticket_parse	96	static
+../mbedtls/library/ssl_ticket.c:394:6:mbedtls_ssl_ticket_free	16	static

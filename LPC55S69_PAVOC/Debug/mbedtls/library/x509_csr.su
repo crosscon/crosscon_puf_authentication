@@ -1,0 +1,7 @@
+C:\Users\lup22vs\Documents\MCUXpressoIDE_11.8.0_1165\workspace\LPC55S69_PAVOC\mbedtls\include/mbedtls/error.h:159:19:mbedtls_error_add	24	static
+../mbedtls/library/x509_csr.c:62:12:x509_csr_get_version	32	static
+../mbedtls/library/x509_csr.c:85:5:mbedtls_x509_csr_parse_der	72	static
+../mbedtls/library/x509_csr.c:257:5:mbedtls_x509_csr_parse	64	static
+../mbedtls/library/x509_csr.c:331:5:mbedtls_x509_csr_info	64	static
+../mbedtls/library/x509_csr.c:374:6:mbedtls_x509_csr_init	16	static
+../mbedtls/library/x509_csr.c:382:6:mbedtls_x509_csr_free	24	static
