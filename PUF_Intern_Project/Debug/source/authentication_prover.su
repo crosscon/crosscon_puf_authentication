@@ -6,8 +6,8 @@
 ../source/authentication_prover.c:94:6:init_ECC	48	static
 ../source/authentication_prover.c:107:5:enroll_ECC	56	static
 ../source/authentication_prover.c:126:5:authenticate_ECC	264	dynamic
-../source/authentication_prover.c:180:5:start_auth_prover	192	static
-../source/authentication_prover.c:268:13:get_Pover_Result_P	16	static
-../source/authentication_prover.c:272:13:get_Pover_Result_c	16	static
-../source/authentication_prover.c:275:13:get_Pover_Result_v	16	static
-../source/authentication_prover.c:278:13:get_Pover_Result_w	16	static
+../source/authentication_prover.c:172:5:start_auth_prover	192	static
+../source/authentication_prover.c:260:13:get_Pover_Result_P	16	static
+../source/authentication_prover.c:264:13:get_Pover_Result_c	16	static
+../source/authentication_prover.c:267:13:get_Pover_Result_v	16	static
+../source/authentication_prover.c:270:13:get_Pover_Result_w	16	static

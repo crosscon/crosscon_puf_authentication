@@ -1,0 +1,5 @@
+../source/LPC55S69_ZK-PUF.c:68:6:enableCycleCounter	4	static
+../source/LPC55S69_ZK-PUF.c:73:6:resetCycleCounter	4	static
+../source/LPC55S69_ZK-PUF.c:78:15:getCycleCount	4	static
+../source/LPC55S69_ZK-PUF.c:83:5:add_mul_mod2	24	static
+../source/LPC55S69_ZK-PUF.c:99:5:main	304	static

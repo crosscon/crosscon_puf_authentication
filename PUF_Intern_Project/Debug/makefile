@@ -33,7 +33,7 @@ $(wildcard ../makefile.init) \
 $(wildcard ../makefile.targets) \
 
 
-BUILD_ARTIFACT_NAME := PUF_Intern_Project
+BUILD_ARTIFACT_NAME := ZK-PUF
 BUILD_ARTIFACT_EXTENSION := axf
 BUILD_ARTIFACT_PREFIX :=
 BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME)$(if $(BUILD_ARTIFACT_EXTENSION),.$(BUILD_ARTIFACT_EXTENSION),)
@@ -45,24 +45,24 @@ all:
 	+@$(MAKE) --no-print-directory main-build && $(MAKE) --no-print-directory post-build
 
 # Main-build Target
-main-build: PUF_Intern_Project.axf
+main-build: ZK-PUF.axf
 
 # Tool invocations
-PUF_Intern_Project.axf: $(OBJS) $(USER_OBJS) makefile $(OPTIONAL_TOOL_DEPS)
+ZK-PUF.axf: $(OBJS) $(USER_OBJS) makefile $(OPTIONAL_TOOL_DEPS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: MCU Linker'
-	arm-none-eabi-gcc -nostdlib -Xlinker -Map="PUF_Intern_Project.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -Xlinker --sort-section=alignment -Xlinker --cref -mcpu=cortex-m33 -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mthumb -T PUF_Intern_Project_Debug.ld -o "PUF_Intern_Project.axf" $(OBJS) $(USER_OBJS) $(LIBS)
+	arm-none-eabi-gcc -nostdlib -Xlinker -Map="ZK-PUF.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -Xlinker --sort-section=alignment -Xlinker --cref -mcpu=cortex-m33 -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mthumb -T PUF_Intern_Project_Debug.ld -o "ZK-PUF.axf" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) PUF_Intern_Project.axf
+	-$(RM) ZK-PUF.axf
 	-@echo ' '
 
 post-build:
 	-@echo 'Performing post-build steps'
-	-arm-none-eabi-size "PUF_Intern_Project.axf"; # arm-none-eabi-objcopy -v -O binary "PUF_Intern_Project.axf" "PUF_Intern_Project.bin" ; # checksum -p LPC55S69 -d "PUF_Intern_Project.bin";
+	-arm-none-eabi-size "ZK-PUF.axf"; # arm-none-eabi-objcopy -v -O binary "ZK-PUF.axf" "ZK-PUF.bin" ; # checksum -p LPC55S69 -d "ZK-PUF.bin";
 	-@echo ' '
 
 .PHONY: all clean dependents main-build post-build

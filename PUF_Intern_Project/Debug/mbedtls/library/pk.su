@@ -1,5 +1,5 @@
-C:\Users\lup22vs\Documents\MCUXpressoIDE_11.8.0_1165\workspace\PUF_Intern_Project\mbedtls\include/mbedtls/pk.h:370:22:mbedtls_pk_get_len	16	static
-C:\Users\lup22vs\Documents\MCUXpressoIDE_11.8.0_1165\workspace\PUF_Intern_Project\mbedtls\include/mbedtls/pk.h:644:36:mbedtls_pk_rsa	16	static
+C:\Users\lup22vs\Desktop\CROSSCON\PUF-authentication\PUF_Intern_Project\mbedtls\include/mbedtls/pk.h:370:22:mbedtls_pk_get_len	16	static
+C:\Users\lup22vs\Desktop\CROSSCON\PUF-authentication\PUF_Intern_Project\mbedtls\include/mbedtls/pk.h:644:36:mbedtls_pk_rsa	16	static
 ../mbedtls/library/pk.c:55:6:mbedtls_pk_init	16	static
 ../mbedtls/library/pk.c:66:6:mbedtls_pk_free	16	static
 ../mbedtls/library/pk.c:109:27:mbedtls_pk_info_from_type	16	static
