@@ -36,6 +36,9 @@ The main function of PAVOC is located under `source -> LPC55S69_PAWOS.c`. This e
 Initially, the challenges are enrolled using the `enroll` function. This function returns the public value for each one-time signature pair, corresponding to one PUF response. To authenticate, a one-time signature is generated using the provided challenge. The verifier then verifies the received one-time signature by reconstructing the public value from it. Additionally, it checks that the used value is correctly enrolled with the claimed prover by verifying the Merkle path.
 If both checks are successful, the function returns `0`; otherwise, it returns `1`. For each exemplary challenge, we provide the exemplary Merkle path for the given root. Note that if you change the challenge used in the authentication, the corresponding path must be used for authentication to succeed.
 
+## License
+
+See LICENSE file.
 
 ## Acknowledgments
 
