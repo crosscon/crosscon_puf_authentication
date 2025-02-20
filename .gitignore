@@ -1,1 +1,31 @@
 /.metadata/
+/.mcuxpressoide_packages_support/
+
+
+# Ignore build artifacts
+PUF_Intern_Project/Debug/
+LPC55S69_PAWOS/Debug/
+LPC55S69_PAVOC/Debug/
+*.o
+*.d
+*.su
+PUF_Intern_Project/subdir.mk
+
+# IDE-specific files
+*.launch
+*.settings
+
+# Ignore compiled binaries and other build files
+*.elf
+*.bin
+*.map
+*.hex
+*.a
+*.lib
+*.exe
+*.out
+
+# Ignore configuration files that are auto-generated
+PUF_Intern_Project/makefile
+LPC55S69_PAWOS/makefile
+LPC55S69_PAVOC/makefile

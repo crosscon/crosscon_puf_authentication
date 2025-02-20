@@ -1,8 +1,0 @@
-C:\Users\lup22vs\Desktop\CROSSCON\PUF-authentication\LPC55S69_PAVOC\mbedtls\include/mbedtls/ssl_internal.h:331:19:mbedtls_ssl_chk_buf_ptr	24	static
-../mbedtls/library/ssl_cookie.c:75:6:mbedtls_ssl_cookie_init	16	static
-../mbedtls/library/ssl_cookie.c:88:6:mbedtls_ssl_cookie_set_timeout	16	static
-../mbedtls/library/ssl_cookie.c:93:6:mbedtls_ssl_cookie_free	16	static
-../mbedtls/library/ssl_cookie.c:104:5:mbedtls_ssl_cookie_setup	72	static
-../mbedtls/library/ssl_cookie.c:131:12:ssl_cookie_hmac	56	static
-../mbedtls/library/ssl_cookie.c:157:5:mbedtls_ssl_cookie_write	48	static
-../mbedtls/library/ssl_cookie.c:199:5:mbedtls_ssl_cookie_check	80	static

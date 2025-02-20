@@ -1,5 +1,0 @@
-../mbedtls/library/psa_crypto_aead.c:54:13:psa_aead_abort_internal	16	static
-../mbedtls/library/psa_crypto_aead.c:76:21:psa_aead_setup	48	static
-../mbedtls/library/psa_crypto_aead.c:171:14:mbedtls_psa_aead_encrypt	472	static
-../mbedtls/library/psa_crypto_aead.c:279:21:psa_aead_unpadded_locate_tag	32	static
-../mbedtls/library/psa_crypto_aead.c:295:14:mbedtls_psa_aead_decrypt	472	static

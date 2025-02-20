@@ -1,9 +1,0 @@
-../source/utils.c:9:5:myrand	32	static
-../source/utils.c:30:5:calculate_exp_mod	64	static
-../source/utils.c:55:5:update_var_for_exp_mod	24	static
-../source/utils.c:82:6:printHex	24	static
-../source/utils.c:89:6:sha256Hash	24	static
-../source/utils.c:93:5:copyMPIToBuffer	32	static
-../source/utils.c:103:5:copyBufferToMPI	24	static
-../source/utils.c:112:5:concatenateBuffers	24	static
-../source/utils.c:127:5:calculate_SHA256	120	dynamic
