@@ -49,23 +49,30 @@ algorithm to confirm its authenticity.
 
 ## ZK-PUF
 
-To run ZK-PUF, begin by opening the main function located in the source folder
-under `LPC55S69_ZK-PUF.c`. This file includes an example that demonstrates all
-the provided functionalities. Initially, the necessary parameters are set up
-using the `init_ECC` function. These include the elliptic curve group (for our
-example, SECP256R1), a secondary group generator, and a storage location for
-the commitment C, created during the commitment phase. Once initialization is
-complete, the device is enrolled using the `enroll_ECC` function. This function
-returns an integer indicating whether the enrollment was successful. Enrollment
-is generally a one-time process conducted in a secure setting, but for
-demonstration purposes, we provide all necessary functionality directly on the
-development board. After enrollment, the device is ready to use ZK-PUF for
-authentication by calling the `authenticate_ECC` function. This process writes
-the generated zero-knowledge proof into the designated *proof, result_v, and
-result_w* variables and returns an integer indicating the success of the proof
-generation. Finally, the proof is passed to the `verify_ECC` function to verify
-the authenticity of the proof. To modify the parameters used in this example,
-you can edit the constants in the `constant.h` file.
+The ZK-PUF example provided in the `LPC55S69_ZK-PUF.c` file demonstrates the
+complete functionality of ZK-PUF. To get started, locate the main function in
+this file within the source folder. This example showcases how to initialize
+parameters, enroll the device, authenticate using zero-knowledge proofs, and
+verify their authenticity.
+
+Initialiy the setting up of the necessary parameters using the `init_ECC`
+function happens. This step initializes the elliptic curve group (using
+SECP256R1 in this example), a secondary group generator, and allocates storage
+space for the commitment C, which is generated during the commitment phase. Once
+the parameters are initialized, the device is enrolled by calling the
+`enroll_ECC` function. The function returns an integer indicating whether
+enrollment was successful.
+
+After enrollment, the device is ready for authentication. The `authenticate_ECC`
+function is used to generate a zero-knowledge proof, which is written into the
+proof, result_v, and result_w variables. The function returns an integer to
+indicate the success of proof generation. To verify the authenticity of the
+generated proof, it is then passed to the `verify_ECC` function.
+
+The key functions used in this process include `init_ECC` for initialization,
+`enroll_ECC` for enrollment, `authenticate_ECC` for proof generation, and
+`verify_ECC` for proof verification. By following these steps, you can run and
+customize the ZK-PUF example for your development board.
 
 ## PAVOC
 
