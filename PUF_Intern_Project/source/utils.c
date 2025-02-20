@@ -53,30 +53,35 @@ int calculate_exp_mod(mbedtls_mpi mpiValue_g, mbedtls_mpi mpiValue_R1,
 }
 
 int update_var_for_exp_mod(mbedtls_mpi *mpiValue_g, mbedtls_mpi *mpiValue_R1,
-		mbedtls_mpi *mpiValue_h, mbedtls_mpi *mpiValue_R2,
-		mbedtls_mpi *mpiValue_p, mbedtls_mpi *mpiValue_n) {
+        mbedtls_mpi *mpiValue_h, mbedtls_mpi *mpiValue_R2,
+        mbedtls_mpi *mpiValue_p, mbedtls_mpi *mpiValue_n) {
 
-	if (mbedtls_mpi_read_string(mpiValue_R1, 10, R1) != 0) {
-		return 1;
-	}
+    // Fetch PUF responses for R1 and R2
+    if (getPUFResponse(mpiValue_R1, 0) != 0) {
+        PRINTF("Error: PUF response for R1 failed\n");
+        return 1;
+    }
 
-	if (mbedtls_mpi_read_string(mpiValue_R2, 10, R2) != 0) {
-		return 1;
-	}
-	if (mbedtls_mpi_read_string(mpiValue_p, 10, p) != 0) {
-		return 1;
-	}
-	if (mbedtls_mpi_read_string(mpiValue_g, 10, g_GENERATOR_OF_G) != 0) {
-		return 1;
-	}
-	if (mbedtls_mpi_read_string(mpiValue_h, 10, h_GENERATOR_OF_G) != 0) {
-		return 1;
-	}
+    if (getPUFResponse(mpiValue_R2, 1) != 0) {
+        PRINTF("Error: PUF response for R2 failed\n");
+        return 1;
+    }
 
-	if (mbedtls_mpi_read_string(mpiValue_n, 10, n) != 0) {
-		return 1;
-	}
-	return 0;
+    // Read the other values (p, g, h, and n) as before
+    if (mbedtls_mpi_read_string(mpiValue_p, 10, p) != 0) {
+        return 1;
+    }
+    if (mbedtls_mpi_read_string(mpiValue_g, 10, g_GENERATOR_OF_G) != 0) {
+        return 1;
+    }
+    if (mbedtls_mpi_read_string(mpiValue_h, 10, h_GENERATOR_OF_G) != 0) {
+        return 1;
+    }
+    if (mbedtls_mpi_read_string(mpiValue_n, 10, n) != 0) {
+        return 1;
+    }
+
+    return 0;
 }
 
 void printHex(const unsigned char *data, size_t length) {

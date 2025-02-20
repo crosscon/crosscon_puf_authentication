@@ -11,14 +11,46 @@
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/ecp.h"
+#include "fsl_puf.h"
+
+#define PUF_KEY_SIZE 16
 
 mbedtls_mpi result_c, result_P, result_v, result_w;
 
-int getPUFResponse(mbedtls_mpi *mpiValue_R, const char *R) {
-	if (mbedtls_mpi_read_string(mpiValue_R, 10, R) != 0) {
-			return 1;
-		}
-	return 0;
+int getPUFResponse(mbedtls_mpi *mpiValue_R, int pufSlot) {
+	size_t keyCodeSize = PUF_GET_KEY_CODE_SIZE_FOR_KEY_SIZE(PUF_KEY_SIZE);
+    uint8_t keyCode[keyCodeSize];
+
+    if(pufSlot==0){
+    	if(R1==NULL){
+    		if (PUF_SetIntrinsicKey(PUF, pufSlot, PUF_KEY_SIZE, keyCode, sizeof(keyCode)) != kStatus_Success) {
+    		        return 1;
+    		    }
+    		R1 = (char *)malloc(keyCodeSize);
+    		memcpy(R1, keyCode, keyCodeSize);
+    	}
+    	else
+    		memcpy(keyCode, R1, keyCodeSize);
+    }
+    else{
+    	if(R2==NULL){
+		if (PUF_SetIntrinsicKey(PUF, pufSlot, PUF_KEY_SIZE, keyCode, sizeof(keyCode)) != kStatus_Success) {
+				return 1;
+			}
+		R2 = (char *)malloc(keyCodeSize);
+		memcpy(R2, keyCode, keyCodeSize);
+	}
+	else
+		memcpy(keyCode, R2, keyCodeSize);
+    }
+
+    if (mbedtls_mpi_read_binary(mpiValue_R, keyCode, PUF_KEY_SIZE) != 0) {
+        return 1;
+    }
+
+    memset(keyCode, 0, sizeof(keyCode));
+
+    return 0;
 }
 
 int generateRandomNumbers(mbedtls_mpi *num, mbedtls_mpi *num2) {
@@ -110,11 +142,12 @@ int enroll_ECC(mbedtls_ecp_group *grp, mbedtls_ecp_point *h, mbedtls_ecp_point *
 	mbedtls_mpi_init(&mpiValue_R1);
 	mbedtls_mpi_init(&mpiValue_R2);
 
-	if (getPUFResponse(&mpiValue_R1, R1) != 0) {
+	if (getPUFResponse(&mpiValue_R1, 0) != 0) {
+
 		return 1;
 	}
 
-	if (getPUFResponse(&mpiValue_R2, R2) != 0) {
+	if (getPUFResponse(&mpiValue_R2, 1) != 0) {
 		return 1;
 	}
 
@@ -140,11 +173,11 @@ int authenticate_ECC(mbedtls_ecp_group *grp, mbedtls_ecp_point *g, mbedtls_ecp_p
 		return 1;
 	}
 
-	if (getPUFResponse(&mpiValue_R1, R1) != 0) {
+	if (getPUFResponse(&mpiValue_R1, 0) != 0) {
 		return 1;
 	}
 
-	if (getPUFResponse(&mpiValue_R2, R2) != 0) {
+	if (getPUFResponse(&mpiValue_R2, 1) != 0) {
 		return 1;
 	}
 

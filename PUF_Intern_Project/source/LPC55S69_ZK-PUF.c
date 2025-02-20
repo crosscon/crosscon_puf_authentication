@@ -54,6 +54,7 @@
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/ecdsa.h"
 #include "mbedtls/sha256.h"
+#include "fsl_puf.h"
 
 
 
@@ -98,14 +99,22 @@ int add_mul_mod2(mbedtls_mpi *mpiValue_1, mbedtls_mpi *mpiValue_2,
 
 int main(void) {
 
-	/* Init board hardware. */	BOARD_InitBootPins();
+	status_t status;
+	 __attribute__((aligned(16))) uint8_t activation_code[PUF_ACTIVATION_CODE_SIZE];
+
+	 puf_config_t pufConfig; // PUF configuration structure
+	 pufConfig.dischargeTimeMsec = 400; // Corrected field name for discharge time
+	 pufConfig.coreClockFrequencyHz = CLOCK_GetFreq(kCLOCK_CoreSysClk); // Corrected field name for core clock frequency
+
+	/* Init board hardware. */
+	BOARD_InitBootPins();
 	BOARD_InitBootClocks();
 	BOARD_InitBootPeripherals();
 	BOARD_InitDebugConsole();
-#ifndef BOARD_INIT_DEBUG_CONSOLE_PERIPHERAL
-	/* Init FSL debug console. */
+	#ifndef BOARD_INIT_DEBUG_CONSOLE_PERIPHERAL
+		/* Init FSL debug console. */
 
-#endif
+	#endif
 
 	BOARD_InitDebugConsole();
 	// Enable and reset the cycle counter
@@ -113,6 +122,36 @@ int main(void) {
 	resetCycleCounter();
 	// Start the timer
 	int res;
+
+	PRINTF("Starting PUF Key Generation Example...\r\n");
+
+	// Initialize the PUF
+	status = PUF_Init(PUF, &pufConfig);
+	if (status != kStatus_Success) {
+		PRINTF("Error: PUF initialization failed!\r\n");
+		return -1;
+	}
+	PRINTF("PUF Initialized Successfully.\r\n");
+
+	// Enroll the PUF
+	memset(activation_code, 0, sizeof(activation_code));
+	status = PUF_Enroll(PUF, activation_code, sizeof(activation_code));
+	if (status != kStatus_Success) {
+		PRINTF("Error: PUF enrollment failed!\r\n");
+		return -1;
+	}
+	PRINTF("PUF Enroll successful. Activation Code created.\r\n");
+
+	// Start the PUF
+	PUF_Deinit(PUF, &pufConfig); // Proper deinitialization
+	status = PUF_Init(PUF, &pufConfig);
+	status = PUF_Start(PUF, activation_code, sizeof(activation_code));
+	if (status != kStatus_Success) {
+		PRINTF("Error: PUF start failed!\r\n");
+		return -1;
+	}
+	PRINTF("PUF started successfully.\r\n");
+
 
 	mbedtls_ecp_group grp;
 	mbedtls_ecp_point h, C;
