@@ -74,6 +74,39 @@ The key functions used in this process include `init_ECC` for initialization,
 `verify_ECC` for proof verification. By following these steps, you can run and
 customize the ZK-PUF example for your development board.
 
+## ZK-PUF_s
+
+This project demonstrates how the ZK-PUF could be initialized from Secure World.
+The Secure World component is a minimally modified version of the
+`lpcxpresso55s69_hello_world_s` demo from the LPC55S69 SDK.
+
+### Debugging & Flashing
+
+To debug or flash the `ZK-PUF_s` project using MCUXpresso IDE:
+
+1. **Ensure you debug the `ZK-PUF_s` project** – since execution begins in
+Secure World.
+1. **Monitor output from different worlds**:
+   - Secure World messages are printed to UART.
+   - Normal World messages are printed via semihosting and can be accessed
+   through `telnet`. (MCUXpresso IDE should automatically launch the telnet session.)
+
+## Known Issues
+
+1. The program hangs on `PUF Enroll successful. Activation Code created.`
+
+    Within the trustzone demo this can take even up to 2 minutes. As it's only a
+    PoC this wasn't debugged properly.
+
+1. `Target error from Commit Flash write: Ep(04). Cannot halt processor.`
+
+    For both `ZK-PUF_s` and `ZK-PUF_ns` from MCUXpresso IDE:
+
+    _Quickstart Panel -> Edit project settings -> Run/Debug settings -> Edit
+    current configuration -> LinkServer Debugger_
+
+    Set the _Reset handling_ to `SOFT`.
+
 ## PAVOC
 
 The main function of PAVOC is located under `source -> LPC55S69_PAVOC.c`. This
