@@ -1,5 +1,0 @@
-../source/PUF_Intern_Project.c:68:6:enableCycleCounter	4	static
-../source/PUF_Intern_Project.c:73:6:resetCycleCounter	4	static
-../source/PUF_Intern_Project.c:78:15:getCycleCount	4	static
-../source/PUF_Intern_Project.c:83:5:add_mul_mod2	24	static
-../source/PUF_Intern_Project.c:99:5:main	304	static

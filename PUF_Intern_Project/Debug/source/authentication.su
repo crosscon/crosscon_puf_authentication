@@ -1,5 +1,0 @@
-../source/authentication.c:13:6:generateRandomNumbers	784	static
-../source/authentication.c:48:6:concatenateMpiValues	40	static
-../source/authentication.c:62:6:add_MPI	24	static
-../source/authentication.c:68:6:add_mul_mod	24	static
-../source/authentication.c:77:5:start_auth	1256	static

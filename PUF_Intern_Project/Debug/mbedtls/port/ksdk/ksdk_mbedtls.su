@@ -1,2 +1,0 @@
-../mbedtls/port/ksdk/ksdk_mbedtls.c:291:10:CRYPTO_InitHardware	8	static
-../mbedtls/port/ksdk/ksdk_mbedtls.c:6066:5:mbedtls_hardware_poll	32	static
