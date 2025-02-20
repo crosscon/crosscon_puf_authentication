@@ -687,7 +687,7 @@
             <saus>
                <sau enabled="true" all_non_secure="false" generate_code_for_disabled_regions="false">
                   <region start="0" size="268435456" security="ns" enabled="true" index="0"/>
-                  <region start="536870912" size="3758096384" security="ns" enabled="true" index="1"/>
+                  <region start="536870912" size="3221225472" security="ns" enabled="true" index="1"/>
                   <region start="268500480" size="512" security="nsc" enabled="true" index="2"/>
                   <region start="0" size="32" security="ns" enabled="false" index="3"/>
                   <region start="0" size="32" security="ns" enabled="false" index="4"/>
