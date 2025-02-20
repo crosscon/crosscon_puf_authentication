@@ -306,7 +306,9 @@
 								<option id="com.crt.advproject.link.securestate.398211148" name="TrustZone Project Type" superClass="com.crt.advproject.link.securestate" useByScannerDiscovery="false"/>
 								<option id="com.crt.advproject.link.sgstubs.placement.329834673" name="Secure Gateway Placement" superClass="com.crt.advproject.link.sgstubs.placement" useByScannerDiscovery="false"/>
 								<option id="com.crt.advproject.link.sgstubenable.1911209106" name="Enable generation of Secure Gateway Import Library" superClass="com.crt.advproject.link.sgstubenable" useByScannerDiscovery="false"/>
-								<option id="com.crt.advproject.link.nonsecureobject.1681127386" name="Secure Gateway Import Library" superClass="com.crt.advproject.link.nonsecureobject" useByScannerDiscovery="false"/>
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.crt.advproject.link.nonsecureobject.1681127386" name="Secure Gateway Import Library" superClass="com.crt.advproject.link.nonsecureobject" useByScannerDiscovery="false" valueType="userObjs">
+									<listOptionValue builtIn="false" value="${workspace_loc:/ZK-PUF_s/${config_name:${ProjName}}/ZK-PUF_s_CMSE_lib.o}"/>
+								</option>
 								<option id="com.crt.advproject.link.inimplib.982691032" name="Input Secure Gateway Import Library" superClass="com.crt.advproject.link.inimplib" useByScannerDiscovery="false"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.linker.input.1399883104" superClass="cdt.managedbuild.tool.gnu.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
