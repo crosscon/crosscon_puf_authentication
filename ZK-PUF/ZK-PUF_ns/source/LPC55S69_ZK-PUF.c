@@ -48,6 +48,7 @@
 #include "mbedtls/ecp.h"
 #include "utils.h"
 #include "constants.h"
+#include "veneer_table.h"
 
 
 #include "mbedtls/entropy.h"
