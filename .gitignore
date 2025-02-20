@@ -31,3 +31,9 @@ ZK-PUF/ZK-PUF_ns/makefile
 ZK-PUF/ZK-PUF_s/makefile
 LPC55S69_PAWOS/makefile
 LPC55S69_PAVOC/makefile
+
+# Add power managment libs
+!ZK-PUF/ZK-PUF_s/libs/
+!ZK-PUF/ZK-PUF_s/libs/*
+!ZK-PUF/ZK-PUF_ns/libs/
+!ZK-PUF/ZK-PUF_ns/libs/*
