@@ -4,6 +4,7 @@
 
 # Ignore build artifacts
 ZK-PUF/PUF_Intern_Project/Debug/
+ZK-PUF/ZK-PUF_s/Debug/
 LPC55S69_PAWOS/Debug/
 LPC55S69_PAVOC/Debug/
 *.o
@@ -27,5 +28,6 @@ PUF_Intern_Project/subdir.mk
 
 # Ignore configuration files that are auto-generated
 ZK-PUF/PUF_Intern_Project/makefile
+ZK-PUF/ZK-PUF_s/makefile
 LPC55S69_PAWOS/makefile
 LPC55S69_PAVOC/makefile
