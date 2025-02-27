@@ -56,8 +56,6 @@
 #include "mbedtls/sha256.h"
 #include "fsl_puf.h"
 
-
-
 #define mbedtls_printf PRINTF
 
 
@@ -96,6 +94,33 @@ int add_mul_mod2(mbedtls_mpi *mpiValue_1, mbedtls_mpi *mpiValue_2,
 	return 0;
 }
 
+void print_mpi_hex(const mbedtls_mpi *mpi) {
+    unsigned char *data;
+    size_t data_len;
+
+    // Get the length of the binary data of mpi
+    data_len = mbedtls_mpi_size(mpi);
+
+    // Allocate memory to hold the binary data of mpi
+    data = (unsigned char*)malloc(data_len);
+    if (data == NULL) {
+    	PRINTF("Memory allocation failed\n");
+        return;
+    }
+
+    // Write the mpi to binary
+    mbedtls_mpi_write_binary(mpi, data, data_len);
+
+    // Print the binary data as hexadecimal
+    for (size_t i = 0; i < data_len; i++) {
+        PRINTF("%02X", data[i]);
+    }
+
+    PRINTF("\n");
+
+    // Free the allocated memory for data
+    free(data);
+}
 
 int main(void) {
 
@@ -164,14 +189,35 @@ int main(void) {
 			PRINTF("enrollment successful\n");
 	}
 
+    unsigned char nonce[64] = {
+        0x12, 0x34, 0x56, 0x78, 0x90, 0xAB, 0xCD, 0xEF,
+        0xFE, 0xDC, 0xBA, 0x09, 0x87, 0x65, 0x43, 0x21,
+        0xA1, 0xB2, 0xC3, 0xD4, 0xE5, 0xF6, 0x07, 0x18,
+        0x87, 0x65, 0x43, 0x21, 0xDE, 0xAD, 0xBE, 0xEF,
+        0xCA, 0xFE, 0xBA, 0xBE, 0xDE, 0xAD, 0xF0, 0x0D,
+        0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88,
+        0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x00,
+        0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x77, 0x88
+    };
+
+
+	mbedtls_mpi nonce_mpi;
+	mbedtls_mpi_init(&nonce_mpi);
+
+	mbedtls_mpi_read_binary(&nonce_mpi, nonce, sizeof(nonce));
+
+    // Print the mpi as hexadecimal directly
+    printf("nonce_mpi (hex): ");
+    print_mpi_hex(&nonce_mpi);
+
 
 	mbedtls_ecp_point proof;
 	mbedtls_ecp_point_init(&proof);
-	mbedtls_mpi result_v, result_w, nonce;
+	mbedtls_mpi result_v, result_w;
 	mbedtls_mpi_init(&result_v);
 	mbedtls_mpi_init(&result_w);
-	mbedtls_mpi_init(&nonce);
-	res = authenticate_ECC(&grp, &grp.G, &h, &proof, &C, &result_v, &result_w, &nonce );
+
+	res = authenticate_ECC(&grp, &grp.G, &h, &proof, &C, &result_v, &result_w, &nonce_mpi );
 
 	if (res != 0) {
 		PRINTF("authentication failed\n");
@@ -179,7 +225,7 @@ int main(void) {
 		PRINTF("authentication successful\n");
 	}
 
-	res = verify_ECC(&grp, &grp.G, &h, &proof, &C, &result_v, &result_w, &nonce );
+	res = verify_ECC(&grp, &grp.G, &h, &proof, &C, &result_v, &result_w, &nonce_mpi );
 
 	if (res != 0) {
 		PRINTF("verification failed\n");
