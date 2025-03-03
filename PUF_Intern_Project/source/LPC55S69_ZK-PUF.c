@@ -158,14 +158,33 @@ int main(void) {
 	}
 	PRINTF("PUF Initialized Successfully.\r\n");
 
-	// Enroll the PUF
-	memset(activation_code, 0, sizeof(activation_code));
-	status = PUF_Enroll(PUF, activation_code, sizeof(activation_code));
-	if (status != kStatus_Success) {
-		PRINTF("Error: PUF enrollment failed!\r\n");
-		return -1;
-	}
-	PRINTF("PUF Enroll successful. Activation Code created.\r\n");
+    // Check if PUF is already enrolled
+    // TODO replace with actual validity check
+    bool isEnrolled = true;
+
+    if (!isEnrolled) {
+        PRINTF("PUF is not enrolled. Enrolling now...\r\n");
+
+        // Ensure enrollment is not blocked before attempting enrollment
+        #if defined(PUF_CFG_BLOCKENROLL_SETKEY_MASK) && PUF_CFG_BLOCKENROLL_SETKEY_MASK
+        // Check if enrollment is blocked
+        if ((PUF->CFG & PUF_CFG_BLOCKENROLL_SETKEY_MASK) != 0) {
+            PRINTF("PUF enrollment is blocked. Aborting.\r\n");
+            return 1;
+        }
+        #endif
+
+        // Enroll the PUF and generate a new activation code
+        memset(activation_code, 0, sizeof(activation_code));
+        status = PUF_Enroll(PUF, activation_code, sizeof(activation_code));
+        if (status != kStatus_Success) {
+            PRINTF("PUF Enrollment failed!\r\n");
+            return 1;
+        }
+
+    } else {
+        PRINTF("PUF is already enrolled. Using stored activation code...\r\n");
+    }
 
 	// Start the PUF
 	PUF_Deinit(PUF, &pufConfig); // Proper deinitialization
