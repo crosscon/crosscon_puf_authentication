@@ -58,6 +58,7 @@
 
 #define mbedtls_printf PRINTF
 
+#define PUF_KEY_SIZE 16
 
 #define DWT_CONTROL             (*(volatile uint32_t *)0xE0001000)
 #define DWT_CYCCNT              (*(volatile uint32_t *)0xE0001004)
@@ -160,7 +161,7 @@ int main(void) {
 
     // Check if PUF is already enrolled
     // TODO replace with actual validity check
-    bool isEnrolled = true;
+    bool isEnrolled = false;
 
     if (!isEnrolled) {
         PRINTF("PUF is not enrolled. Enrolling now...\r\n");
@@ -196,61 +197,102 @@ int main(void) {
 	}
 	PRINTF("PUF started successfully.\r\n");
 
+	size_t keyCodeSize = PUF_GET_KEY_CODE_SIZE_FOR_KEY_SIZE(PUF_KEY_SIZE);
+	uint8_t keyCode0[keyCodeSize];
+	uint8_t keyCode1[keyCodeSize];
 
-	mbedtls_ecp_group grp;
-	mbedtls_ecp_point h, C;
-	init_ECC(&grp, &h, &C);
-	res = enroll_ECC(&grp, &h, &C);
+	// TODO replace with actual validity check
+	bool isIntrinsicSet = false;
 
-	if (res != 0) {
-			PRINTF("enrollment failed\n");
-		} else {
-			PRINTF("enrollment successful\n");
+	if (!isIntrinsicSet) {
+	        PRINTF("PUF Intrinsic Key is not set. Setting now...\r\n");
+
+		// Attempt to set an intrinsic key at key index 0 (hardware bus key)
+		if (PUF_SetIntrinsicKey(PUF, kPUF_KeyIndex_00, PUF_KEY_SIZE, keyCode0, sizeof(keyCode0)) != kStatus_Success) {
+			printf("PUF Set Intrinsic Key failed!\n");
+			return 1;
+		}
+
+		// Attempt to set an intrinsic key at key index 1 (retrievable key)
+		if (PUF_SetIntrinsicKey(PUF, kPUF_KeyIndex_01, PUF_KEY_SIZE, keyCode1, sizeof(keyCode1)) != kStatus_Success) {
+			printf("PUF Set Intrinsic Key failed!\n");
+			return 1;
+		}
 	}
 
-    unsigned char nonce[64] = {
-        0x12, 0x34, 0x56, 0x78, 0x90, 0xAB, 0xCD, 0xEF,
-        0xFE, 0xDC, 0xBA, 0x09, 0x87, 0x65, 0x43, 0x21,
-        0xA1, 0xB2, 0xC3, 0xD4, 0xE5, 0xF6, 0x07, 0x18,
-        0x87, 0x65, 0x43, 0x21, 0xDE, 0xAD, 0xBE, 0xEF,
-        0xCA, 0xFE, 0xBA, 0xBE, 0xDE, 0xAD, 0xF0, 0x0D,
-        0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88,
-        0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x00,
-        0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x77, 0x88
-    };
-
-
-	mbedtls_mpi nonce_mpi;
-	mbedtls_mpi_init(&nonce_mpi);
-
-	mbedtls_mpi_read_binary(&nonce_mpi, nonce, sizeof(nonce));
-
-    // Print the mpi as hexadecimal directly
-    printf("nonce_mpi (hex): ");
-    print_mpi_hex(&nonce_mpi);
-
-
-	mbedtls_ecp_point proof;
-	mbedtls_ecp_point_init(&proof);
-	mbedtls_mpi result_v, result_w;
-	mbedtls_mpi_init(&result_v);
-	mbedtls_mpi_init(&result_w);
-
-	res = authenticate_ECC(&grp, &grp.G, &h, &proof, &C, &result_v, &result_w, &nonce_mpi );
-
-	if (res != 0) {
-		PRINTF("authentication failed\n");
-	} else {
-		PRINTF("authentication successful\n");
+	// Retrieve Key using PUF_GetKey, PUF_GetKey doesn't allow retrieving hardware bus key kPUF_KeyIndex_00
+	uint8_t key[PUF_KEY_SIZE];
+	if (PUF_GetKey(PUF, keyCode1, keyCodeSize, key, PUF_KEY_SIZE) != kStatus_Success) {
+	    printf("PUF Get Key failed!\n");
+	    return 1;
 	}
 
-	res = verify_ECC(&grp, &grp.G, &h, &proof, &C, &result_v, &result_w, &nonce_mpi );
+	mbedtls_mpi mpiValue_R;
+	mbedtls_mpi_init(&mpiValue_R);
 
-	if (res != 0) {
-		PRINTF("verification failed\n");
-	} else {
-		PRINTF("verification successful\n");
-	}
+    // Convert key to mpiValue_R
+    if (mbedtls_mpi_read_binary(&mpiValue_R, key, sizeof(key)) != 0) {
+        return 1;
+    }
 
+	printf("R1 (hex): ");
+	print_mpi_hex(&mpiValue_R);
+
+//	mbedtls_ecp_group grp;
+//	mbedtls_ecp_point h, C;
+//	init_ECC(&grp, &h);
+//	res = enroll_ECC(&grp, &h, &C, (char *)keyCode);
+//
+//	if (res != 0) {
+//			PRINTF("enrollment failed\n");
+//		} else {
+//			PRINTF("enrollment successful\n");
+//	}
+////	print_mpi_hex(&mpiValue_R1);
+//	printf("R2 (hex): ");
+//    unsigned char nonce[64] = {
+//        0x12, 0x34, 0x56, 0x78, 0x90, 0xAB, 0xCD, 0xEF,
+//        0xFE, 0xDC, 0xBA, 0x09, 0x87, 0x65, 0x43, 0x21,
+//        0xA1, 0xB2, 0xC3, 0xD4, 0xE5, 0xF6, 0x07, 0x18,
+//        0x87, 0x65, 0x43, 0x21, 0xDE, 0xAD, 0xBE, 0xEF,
+//        0xCA, 0xFE, 0xBA, 0xBE, 0xDE, 0xAD, 0xF0, 0x0D,
+//        0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88,
+//        0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x00,
+//        0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x77, 0x88
+//    };
+//
+//
+//	mbedtls_mpi nonce_mpi;
+//	mbedtls_mpi_init(&nonce_mpi);
+//
+//	mbedtls_mpi_read_binary(&nonce_mpi, nonce, sizeof(nonce));
+//
+//    // Print the mpi as hexadecimal directly
+//    printf("nonce_mpi (hex): ");
+//    print_mpi_hex(&nonce_mpi);
+//
+//
+//	mbedtls_ecp_point proof;
+//	mbedtls_ecp_point_init(&proof);
+//	mbedtls_mpi result_v, result_w;
+//	mbedtls_mpi_init(&result_v);
+//	mbedtls_mpi_init(&result_w);
+//
+//	res = authenticate_ECC(&grp, &grp.G, &h, &proof, &C, &result_v, &result_w, &nonce_mpi );
+//
+//	if (res != 0) {
+//		PRINTF("authentication failed\n");
+//	} else {
+//		PRINTF("authentication successful\n");
+//	}
+//
+//	res = verify_ECC(&grp, &grp.G, &h, &proof, &C, &result_v, &result_w, &nonce_mpi );
+//
+//	if (res != 0) {
+//		PRINTF("verification failed\n");
+//	} else {
+//		PRINTF("verification successful\n");
+//	}
+//
 	return 0;
 }
