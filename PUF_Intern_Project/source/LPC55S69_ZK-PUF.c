@@ -64,6 +64,11 @@
 #define DWT_CYCCNT              (*(volatile uint32_t *)0xE0001004)
 #define DWT_CYCCNTENA_BIT       (1UL<<0)
 
+#define FLASH_BASE_ADDR 0x4ec00
+#define FLASH_ALIGNMENT  512  // Flash programming requires 512-byte alignment
+
+// Round up a size to the nearest 512 bytes
+#define ALIGN_UP(size, align) (((size) + (align) - 1) & ~((align) - 1))
 
 void enableCycleCounter() {
 	// Enable the DWT cycle counter
@@ -198,8 +203,13 @@ int main(void) {
 	PRINTF("PUF started successfully.\r\n");
 
 	size_t keyCodeSize = PUF_GET_KEY_CODE_SIZE_FOR_KEY_SIZE(PUF_KEY_SIZE);
-	uint8_t keyCode0[keyCodeSize];
-	uint8_t keyCode1[keyCodeSize];
+	size_t alignedKeySize = ALIGN_UP(keyCodeSize, FLASH_ALIGNMENT);
+
+	uint8_t keyCode0[alignedKeySize];  // Ensure the buffer is 512-byte aligned
+	uint8_t keyCode1[alignedKeySize];  // Ensure the buffer is 512-byte aligned
+
+	// Temporary buffer for flashing
+	uint8_t flashBuffer[FLASH_ALIGNMENT];
 
 	// TODO replace with actual validity check
 	bool isIntrinsicSet = false;
@@ -208,17 +218,57 @@ int main(void) {
 	        PRINTF("PUF Intrinsic Key is not set. Setting now...\r\n");
 
 		// Attempt to set an intrinsic key at key index 0 (hardware bus key)
-		if (PUF_SetIntrinsicKey(PUF, kPUF_KeyIndex_00, PUF_KEY_SIZE, keyCode0, sizeof(keyCode0)) != kStatus_Success) {
+		if (PUF_SetIntrinsicKey(PUF, kPUF_KeyIndex_00, PUF_KEY_SIZE, keyCode0, keyCodeSize) != kStatus_Success) {
 			printf("PUF Set Intrinsic Key failed!\n");
 			return 1;
 		}
 
+	    // Flash keyCode0
+	    memset(flashBuffer, 0xFF, FLASH_ALIGNMENT);  // Fill with 0xFF (erased state)
+	    memcpy(flashBuffer, keyCode0, keyCodeSize);  // Copy the actual key data
+	    FLASH_Program(FLASH_BASE_ADDR, flashBuffer, FLASH_ALIGNMENT);
+
+	    uint32_t flashAddress = FLASH_BASE_ADDR + FLASH_ALIGNMENT;  // Move to next aligned sector
+
 		// Attempt to set an intrinsic key at key index 1 (retrievable key)
-		if (PUF_SetIntrinsicKey(PUF, kPUF_KeyIndex_01, PUF_KEY_SIZE, keyCode1, sizeof(keyCode1)) != kStatus_Success) {
+		if (PUF_SetIntrinsicKey(PUF, kPUF_KeyIndex_01, PUF_KEY_SIZE, keyCode1, keyCodeSize) != kStatus_Success) {
 			printf("PUF Set Intrinsic Key failed!\n");
 			return 1;
 		}
+
+	    // Flash keyCode1
+	    memset(flashBuffer, 0xFF, FLASH_ALIGNMENT);
+	    memcpy(flashBuffer, keyCode1, keyCodeSize);
+	    FLASH_Program(flashAddress, flashBuffer, FLASH_ALIGNMENT);
+	} else {
+	    PRINTF("PUF Intrinsic Key is already set. Reading from Flash...\r\n");
+
+	    // If intrinsic keys are already set, read them from Flash memory
+	    uint32_t flashAddress0 = FLASH_BASE_ADDR;  // Address where keyCode0 is stored
+	    uint32_t flashAddress1 = flashAddress0 + keyCodeSize;  // Address where keyCode1 is stored
+
+	    // Read keyCode0 from Flash
+	    memcpy(keyCode0, (uint8_t*)flashAddress0, keyCodeSize);
+	    // Read keyCode1 from Flash
+	    memcpy(keyCode1, (uint8_t*)flashAddress1, keyCodeSize);
+
+	    PRINTF("PUF Intrinsic Keys loaded from Flash.\r\n");
 	}
+
+	// Print the contents of keyCode1 in hexadecimal format
+	PRINTF("Contents of keyCode0: ");
+	for (size_t i = 0; i < sizeof(keyCode0); i++) {
+	    PRINTF("%02X ", keyCode0[i]);  // Print each byte as a two-digit hex value
+	}
+	PRINTF("\r\n");
+
+
+	// Print the contents of keyCode1 in hexadecimal format
+	PRINTF("Contents of keyCode1: ");
+	for (size_t i = 0; i < sizeof(keyCode1); i++) {
+	    PRINTF("%02X ", keyCode1[i]);  // Print each byte as a two-digit hex value
+	}
+	PRINTF("\r\n");
 
 	// Retrieve Key using PUF_GetKey, PUF_GetKey doesn't allow retrieving hardware bus key kPUF_KeyIndex_00
 	uint8_t key[PUF_KEY_SIZE];
