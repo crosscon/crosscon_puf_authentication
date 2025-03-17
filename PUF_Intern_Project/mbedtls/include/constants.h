@@ -12,9 +12,9 @@
 
 extern const char *g_GENERATOR_OF_G;
 extern const char *h_GENERATOR_OF_G;
-extern const char *R1;
-extern const char *R2;
 extern const char *p;
 extern const char *n;
+extern char *R1;
+extern char *R2;
 
 #endif /* INCLUDE_CONSTANTS_H_ */

@@ -11,14 +11,170 @@
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/ecp.h"
+#include "fsl_puf.h"
+#include "fsl_power.h"
+#include "fsl_iap.h"
+
+
+#define PUF_KEY_SIZE 16
+
+#define FLASH_PAGE_SIZE        512  // Minimum programmable flash size (512 bytes)
+#define PAGE_INDEX_FROM_END    2U   // Use the last two pages in flash
+
+uint32_t FLASH_STORAGE_ADDRESS;  // Address of the flash location
+uint32_t pflashBlockBase = 0, pflashTotalSize = 0, pflashSectorSize = 0, PflashPageSize = 0;
+uint32_t failedAddress, failedData;
+
+// Flash Configuration
+flash_config_t flashConfig;
+
+// Function to read data from flash
+void readFromFlash(void *data, size_t size, uint32_t address) {
+    FLASH_Read(&flashConfig, address, data, size);
+}
+
+// Function to print flash operation status
+void verify_status(status_t status) {
+    char *message = "Unknown status";
+    switch (status) {
+        case kStatus_Success: message = "Success."; break;
+        case kStatus_InvalidArgument: message = "Invalid argument."; break;
+        case kStatus_FLASH_AlignmentError: message = "Alignment Error."; break;
+        case kStatus_FLASH_AccessError: message = "Flash Access Error."; break;
+        case kStatus_FLASH_CommandNotSupported: message = "Command Not Supported."; break;
+    }
+    PRINTF("%s\r\n", message);
+}
+
+// Function to write data to flash
+int writeToFlash(void *data, size_t size, uint32_t address) {
+    status_t status;
+    PRINTF("Writing");
+    if (address % FLASH_PAGE_SIZE != 0) {
+        PRINTF("Error: Flash address 0x%08X is not aligned to %d bytes!\r\n", address, FLASH_PAGE_SIZE);
+        return 1;
+    }
+
+    if (size % FLASH_PAGE_SIZE != 0) {
+        PRINTF("Error: Flash write size %d is not aligned to %d bytes!\r\n", (int)size, FLASH_PAGE_SIZE);
+        return 1;
+    }
+
+    status = FLASH_Erase(&flashConfig, address, FLASH_PAGE_SIZE, kFLASH_ApiEraseKey);
+    if (status != kStatus_Success) {
+        PRINTF("Flash Erase failed!\r\n");
+        return 1;
+    }
+
+    status = FLASH_Program(&flashConfig, address, (uint8_t*)data, size);
+    verify_status(status);
+    if (status != kStatus_Success) {
+        PRINTF("Flash Program failed!\r\n");
+        return 1;
+    }
+
+    return 0;
+}
+
+void initialiseFlashMemory(){
+    if (FLASH_Init(&flashConfig) != kStatus_Success) {
+        PRINTF("Flash init failed!\r\n");
+        return -1;
+    }
+
+    FLASH_GetProperty(&flashConfig, kFLASH_PropertyPflashBlockBaseAddr, &pflashBlockBase);
+    FLASH_GetProperty(&flashConfig, kFLASH_PropertyPflashTotalSize, &pflashTotalSize);
+    FLASH_GetProperty(&flashConfig, kFLASH_PropertyPflashPageSize, &PflashPageSize);
+
+    FLASH_STORAGE_ADDRESS = pflashBlockBase + (pflashTotalSize - (PAGE_INDEX_FROM_END * PflashPageSize));
+}
+
+void printKey(char *R, size_t size) {
+    for (size_t i = 0; i < size; i++) {
+        PRINTF("%02x", (unsigned char)R[i]);
+        if ((i + 1) % 16 == 0) PRINTF("\r\n");
+    }
+    PRINTF("\r\n");
+}
+
 
 mbedtls_mpi result_c, result_P, result_v, result_w;
 
-int getPUFResponse(mbedtls_mpi *mpiValue_R, const char *R) {
-	if (mbedtls_mpi_read_string(mpiValue_R, 10, R) != 0) {
-			return 1;
-		}
-	return 0;
+int getPUFResponse(mbedtls_mpi *mpiValue_R, int pufSlot) {
+	size_t keyCodeSize = PUF_GET_KEY_CODE_SIZE_FOR_KEY_SIZE(PUF_KEY_SIZE);
+    uint8_t keyCode[keyCodeSize];
+
+    if( (R1==NULL || R2==NULL) && IS_WRITE_TO_FLASH_ENABLED==1){
+    	 PRINTF("Flash Storage Address: 0x%X\r\n", FLASH_STORAGE_ADDRESS);
+    	if(pufSlot==0){
+			if (PUF_SetIntrinsicKey(PUF, pufSlot, PUF_KEY_SIZE, keyCode, sizeof(keyCode)) != kStatus_Success) {  // Generate Key
+					return 1;
+			  }
+			  R1 = (char *)malloc(keyCodeSize);
+			  memcpy(R1, keyCode, keyCodeSize); // Copy To R1
+			  PRINTF("R1 Key Data:\r\n");
+			  printKey(R1,PUF_KEY_SIZE);
+			  uint8_t paddedData[FLASH_PAGE_SIZE] = {0xFF}; // Padding to Zero to Keep Data Aligned
+			  memcpy(paddedData, keyCode, sizeof(keyCode));
+			  if (writeToFlash(paddedData, FLASH_PAGE_SIZE, FLASH_STORAGE_ADDRESS) != 0) {
+				PRINTF("Error: Writing Key 1 to Flash failed!\r\n");
+				return -1;
+			  }
+    	}
+    	else
+    	{
+    		if (PUF_SetIntrinsicKey(PUF, pufSlot, PUF_KEY_SIZE, keyCode, sizeof(keyCode)) != kStatus_Success) {  // Generate Key
+    			return 1;
+    		}
+			  R2 = (char *)malloc(keyCodeSize);
+			  memcpy(R2, keyCode, keyCodeSize); // Copy To R1
+			  PRINTF("R2 Key Data:\r\n");
+			  printKey(R2,PUF_KEY_SIZE);
+			  uint8_t paddedData[FLASH_PAGE_SIZE] = {0xFF}; // Padding to Zero to Keep Data Aligned
+			  memcpy(paddedData, keyCode, sizeof(keyCode));
+			  if (writeToFlash(paddedData, FLASH_PAGE_SIZE, FLASH_STORAGE_ADDRESS + FLASH_PAGE_SIZE) != 0) {
+				PRINTF("Error: Writing Key 1 to Flash failed!\r\n");
+				return -1;
+			  }
+    	}
+    }
+    else{
+		uint8_t storedKey[PUF_KEY_SIZE];
+
+        if(pufSlot==0){
+        	if(R1==NULL){
+        		PRINTF("Flash Storage Address: 0x%X\r\n", FLASH_STORAGE_ADDRESS);
+        		readFromFlash(storedKey, PUF_KEY_SIZE, FLASH_STORAGE_ADDRESS);
+        		R1 = (char *)malloc(PUF_KEY_SIZE);
+        		memcpy(R1, storedKey, PUF_KEY_SIZE);
+        		PRINTF("R1 Key Data:\r\n");
+        		printKey(R1,PUF_KEY_SIZE);
+        	}
+        	else
+        		memcpy(keyCode, R1, keyCodeSize);
+        }
+        else{
+        	if(R2==NULL){
+
+        	 PRINTF("Flash Storage Address: 0x%X\r\n", FLASH_STORAGE_ADDRESS);
+			readFromFlash(storedKey, PUF_KEY_SIZE, FLASH_STORAGE_ADDRESS + FLASH_PAGE_SIZE);
+    		R2 = (char *)malloc(PUF_KEY_SIZE);
+			memcpy(R2, storedKey, PUF_KEY_SIZE);
+			PRINTF("R2 Key Data:\r\n");
+			printKey(R2,PUF_KEY_SIZE);
+        }
+		else
+			memcpy(keyCode, R2, keyCodeSize);
+      }
+    }
+
+    if (mbedtls_mpi_read_binary(mpiValue_R, keyCode, PUF_KEY_SIZE) != 0) {
+        return 1;
+    }
+
+    memset(keyCode, 0, sizeof(keyCode));
+
+    return 0;
 }
 
 int generateRandomNumbers(mbedtls_mpi *num, mbedtls_mpi *num2) {
@@ -110,11 +266,11 @@ int enroll_ECC(mbedtls_ecp_group *grp, mbedtls_ecp_point *h, mbedtls_ecp_point *
 	mbedtls_mpi_init(&mpiValue_R1);
 	mbedtls_mpi_init(&mpiValue_R2);
 
-	if (getPUFResponse(&mpiValue_R1, R1) != 0) {
+	if (getPUFResponse(&mpiValue_R1, 0) != 0) {
 		return 1;
 	}
 
-	if (getPUFResponse(&mpiValue_R2, R2) != 0) {
+	if (getPUFResponse(&mpiValue_R2, 1) != 0) {
 		return 1;
 	}
 
@@ -140,11 +296,11 @@ int authenticate_ECC(mbedtls_ecp_group *grp, mbedtls_ecp_point *g, mbedtls_ecp_p
 		return 1;
 	}
 
-	if (getPUFResponse(&mpiValue_R1, R1) != 0) {
+	if (getPUFResponse(&mpiValue_R1, 0) != 0) {
 		return 1;
 	}
 
-	if (getPUFResponse(&mpiValue_R2, R2) != 0) {
+	if (getPUFResponse(&mpiValue_R2, 1) != 0) {
 		return 1;
 	}
 
@@ -270,4 +426,3 @@ mbedtls_mpi get_Pover_Result_v() {
 mbedtls_mpi get_Pover_Result_w() {
 	return result_w;
 }
-
