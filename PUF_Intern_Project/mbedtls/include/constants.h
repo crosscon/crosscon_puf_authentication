@@ -17,4 +17,9 @@ extern const char *n;
 extern char *R1;
 extern char *R2;
 
+extern uint8_t *c1;
+extern uint8_t *c2;
+
+extern int challengeSize;
+
 #endif /* INCLUDE_CONSTANTS_H_ */

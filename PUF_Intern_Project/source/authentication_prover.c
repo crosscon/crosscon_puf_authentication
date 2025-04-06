@@ -16,6 +16,7 @@
 #include "fsl_iap.h"
 
 
+
 #define PUF_KEY_SIZE 16
 
 #define FLASH_PAGE_SIZE        512  // Minimum programmable flash size (512 bytes)
@@ -76,7 +77,7 @@ int writeToFlash(void *data, size_t size, uint32_t address) {
     return 0;
 }
 
-void initialiseFlashMemory(){
+int initialiseFlashMemory(){
     if (FLASH_Init(&flashConfig) != kStatus_Success) {
         PRINTF("Flash init failed!\r\n");
         return -1;
@@ -87,6 +88,8 @@ void initialiseFlashMemory(){
     FLASH_GetProperty(&flashConfig, kFLASH_PropertyPflashPageSize, &PflashPageSize);
 
     FLASH_STORAGE_ADDRESS = pflashBlockBase + (pflashTotalSize - (PAGE_INDEX_FROM_END * PflashPageSize));
+
+    return 0;
 }
 
 void printKey(char *R, size_t size) {
@@ -95,6 +98,24 @@ void printKey(char *R, size_t size) {
         if ((i + 1) % 16 == 0) PRINTF("\r\n");
     }
     PRINTF("\r\n");
+}
+
+void sha256HashWithPufResponse(const uint8_t *keyCode, size_t keyCodeSize, const uint8_t *challenge, size_t challengeSize, uint8_t *output) {
+    // Buffer to hold combined data
+    uint8_t combined[keyCodeSize + challengeSize];
+
+    // Combine keyCode and challenge
+    memcpy(combined, keyCode, keyCodeSize);
+    memcpy(combined + keyCodeSize, challenge, challengeSize);
+
+    // Hash the combined data
+    mbedtls_sha256(combined, sizeof(combined), output, 0);
+
+    PRINTF("SHA-256 hash of keyCode + challenge:\n");
+       for (int i = 0; i < 32; i++) {
+           PRINTF("%02X", output[i]);
+       }
+       PRINTF("\n");
 }
 
 
@@ -127,7 +148,7 @@ int getPUFResponse(mbedtls_mpi *mpiValue_R, int pufSlot) {
     			return 1;
     		}
 			  R2 = (char *)malloc(keyCodeSize);
-			  memcpy(R2, keyCode, keyCodeSize); // Copy To R1
+			  memcpy(R2, keyCode, keyCodeSize); // Copy To R2
 			  PRINTF("R2 Key Data:\r\n");
 			  printKey(R2,PUF_KEY_SIZE);
 			  uint8_t paddedData[FLASH_PAGE_SIZE] = {0xFF}; // Padding to Zero to Keep Data Aligned
@@ -150,8 +171,8 @@ int getPUFResponse(mbedtls_mpi *mpiValue_R, int pufSlot) {
         		PRINTF("R1 Key Data:\r\n");
         		printKey(R1,PUF_KEY_SIZE);
         	}
-        	else
-        		memcpy(keyCode, R1, keyCodeSize);
+
+        	memcpy(keyCode, R1, PUF_KEY_SIZE);
         }
         else{
         	if(R2==NULL){
@@ -163,14 +184,28 @@ int getPUFResponse(mbedtls_mpi *mpiValue_R, int pufSlot) {
 			PRINTF("R2 Key Data:\r\n");
 			printKey(R2,PUF_KEY_SIZE);
         }
-		else
-			memcpy(keyCode, R2, keyCodeSize);
+
+		memcpy(keyCode, R2, PUF_KEY_SIZE);
       }
     }
 
-    if (mbedtls_mpi_read_binary(mpiValue_R, keyCode, PUF_KEY_SIZE) != 0) {
-        return 1;
+
+
+    uint8_t *challenge = (pufSlot == 0) ? c1 : c2;
+    uint8_t *hashResult = (uint8_t *)malloc(32);
+    sha256HashWithPufResponse(keyCode,keyCodeSize,challenge,challengeSize,hashResult);
+
+    if(!hashResult){
+    	PRINTF("Hash Couldn't be retrieved\r\n");
+    	return 1;
     }
+
+    if (mbedtls_mpi_read_binary(mpiValue_R, hashResult, 32) != 0) {
+        free(hashResult);
+    	return 1;
+    }
+
+    free(hashResult);
 
     memset(keyCode, 0, sizeof(keyCode));
 
@@ -257,7 +292,6 @@ void init_ECC(mbedtls_ecp_group *grp, mbedtls_ecp_point *h, mbedtls_ecp_point *C
 	mbedtls_mpi_init(&x);
 	res = mbedtls_mpi_lset(&x, 123456789);  // used to create a second group generator as part of the global parameters
 	res = mbedtls_ecp_mul(grp, h, &x, &grp->G, myrand, NULL);
-
 }
 
 int enroll_ECC(mbedtls_ecp_group *grp, mbedtls_ecp_point *h, mbedtls_ecp_point *C) {
@@ -279,6 +313,7 @@ int enroll_ECC(mbedtls_ecp_group *grp, mbedtls_ecp_point *h, mbedtls_ecp_point *
 	}
 	return 0;
 }
+
 int authenticate_ECC(mbedtls_ecp_group *grp, mbedtls_ecp_point *g, mbedtls_ecp_point *h, mbedtls_ecp_point *proof, mbedtls_ecp_point *C, mbedtls_mpi *result_v, mbedtls_mpi *result_w, mbedtls_mpi *nonce) {
 
 	unsigned char sha256_result[32];

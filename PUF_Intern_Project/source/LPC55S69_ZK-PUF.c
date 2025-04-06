@@ -36,6 +36,7 @@
 #include <authentication_verifier.h>
 #include <enrollment.h>
 #include <stdio.h>
+#include <errno.h>
 #include "board.h"
 #include "peripherals.h"
 #include "pin_mux.h"
@@ -50,14 +51,13 @@
 #include "constants.h"
 
 
+
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/ecdsa.h"
 #include "mbedtls/sha256.h"
 #include "fsl_puf.h"
 #include "fsl_power.h"
-
-
 
 
 #define mbedtls_printf PRINTF
@@ -98,6 +98,38 @@ int add_mul_mod2(mbedtls_mpi *mpiValue_1, mbedtls_mpi *mpiValue_2,
 	return 0;
 }
 
+int save_commitment(const mbedtls_ecp_group *grp, const mbedtls_ecp_point *C, const char *filename) {
+    FILE *f = fopen(filename, "wb");
+    if (!f) {
+    	printf("Failed to open %s for writing: %s\n", filename, strerror(errno));
+    	return 1;
+    }
+
+    uint8_t buf[100];
+    size_t olen;
+
+    int res = mbedtls_ecp_point_write_binary(grp, C, MBEDTLS_ECP_PF_UNCOMPRESSED, &olen, buf, sizeof(buf));
+    if (res != 0) {
+        fclose(f);
+        return res;
+    }
+
+    fwrite(buf, 1, olen, f);
+    fclose(f);
+    return 0;
+}
+
+int load_commitment(mbedtls_ecp_group *grp, mbedtls_ecp_point *C, const char *filename) {
+    FILE *f = fopen(filename, "rb");
+    if (!f) return 1;
+
+    uint8_t buf[100];
+    size_t len = fread(buf, 1, sizeof(buf), f);
+    fclose(f);
+
+    int res = mbedtls_ecp_point_read_binary(grp, C, buf, len);
+    return res;
+}
 
 int main(void) {
 
@@ -114,14 +146,13 @@ int main(void) {
 	// Start the timer
 	int res;
 
-	PRINTF("Starting PUF Key Generation Example...\r\n");
-
 	// Initialize the PUF
 	status = PUF_Init(PUF, &pufConfig);
 	if (status != kStatus_Success) {
 		PRINTF("Error: PUF initialization failed!\r\n");
 		return -1;
 	}
+
 	PRINTF("PUF Initialized Successfully.\r\n");
 
 	// Enroll the PUF
@@ -131,6 +162,7 @@ int main(void) {
 		PRINTF("Error: PUF enrollment failed!\r\n");
 		return -1;
 	}
+
 	PRINTF("PUF Enroll successful. Activation Code created.\r\n");
 
 	// Start the PUF
@@ -143,41 +175,54 @@ int main(void) {
 	}
 	PRINTF("PUF started successfully.\r\n");
 
-	initialiseFlashMemory();
+	if(initialiseFlashMemory()!=-1)
+	{
+		PRINTF("Flash Memory Started Successfully!\r\n");
+	}
+	else
+		return -1;
 
 	mbedtls_ecp_group grp;
 	mbedtls_ecp_point h, C;
 	init_ECC(&grp, &h, &C);
-	res = enroll_ECC(&grp, &h, &C);
 
-	if (res != 0) {
-			PRINTF("enrollment failed\n");
+
+	if(IS_ENROLMENT == 1){
+
+		res = enroll_ECC(&grp, &h, &C);
+
+		if (res != 0) {
+				PRINTF("enrollment failed\n");
+			} else {
+				PRINTF("enrollment successful\n");
+
+		}
+	}
+//	else{
+
+		mbedtls_ecp_point proof;
+		mbedtls_ecp_point_init(&proof);
+		mbedtls_mpi result_v, result_w, nonce;
+		mbedtls_mpi_init(&result_v);
+		mbedtls_mpi_init(&result_w);
+		mbedtls_mpi_init(&nonce);
+		res = authenticate_ECC(&grp, &grp.G, &h, &proof, &C, &result_v, &result_w, &nonce );
+
+		if (res != 0) {
+			PRINTF("authentication failed\n");
 		} else {
-			PRINTF("enrollment successful\n");
-	}
+			PRINTF("authentication successful\n");
+		}
 
+		res = verify_ECC(&grp, &grp.G, &h, &proof, &C, &result_v, &result_w, &nonce );
 
-	mbedtls_ecp_point proof;
-	mbedtls_ecp_point_init(&proof);
-	mbedtls_mpi result_v, result_w, nonce;
-	mbedtls_mpi_init(&result_v);
-	mbedtls_mpi_init(&result_w);
-	mbedtls_mpi_init(&nonce);
-	res = authenticate_ECC(&grp, &grp.G, &h, &proof, &C, &result_v, &result_w, &nonce );
+		if (res != 0) {
+			PRINTF("verification failed\n");
+		} else {
+			PRINTF("verification successful\n");
+		}
 
-	if (res != 0) {
-		PRINTF("authentication failed\n");
-	} else {
-		PRINTF("authentication successful\n");
-	}
-
-	res = verify_ECC(&grp, &grp.G, &h, &proof, &C, &result_v, &result_w, &nonce );
-
-	if (res != 0) {
-		PRINTF("verification failed\n");
-	} else {
-		PRINTF("verification successful\n");
-	}
+//	}
 
 	return 0;
 }
